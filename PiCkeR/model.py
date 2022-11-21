@@ -32,7 +32,7 @@ class PCMember:
     def get_score(self, topics, weights) -> int:
         if len(topics) != len(weights):
             raise ValueError('len(topics) != len(weights): {} != {}'.format(len(topics), len(weights)))
-        score = 0 
+        score = 0
         for id, t in enumerate(topics):
             if t == '' or t == noTopic: continue
             if self.topics[t] != self.topics[t]: continue
@@ -42,17 +42,17 @@ class PCMember:
         return score
 
     def __str__(self) -> str:
-        return "{}, {}, {}, {}".format(self.id, self.name, self.tag, self.topics)        
+        return "{}, {}, {}, {}".format(self.id, self.name, self.tag, self.topics)
 #%% Paper
 class Paper:
     def __init__(self, id, title, abstract, topics, authors):
       self.id = id
-      self.title = title  
-      self.abstract = abstract  
+      self.title = title
+      self.abstract = abstract
       self.topics = topics
       self.authors = authors
     def __str__(self) -> str:
-        return "{}, {} | {}, {}, {}".format(self.id, self.title, self.topics )  
+        return "{}, {} | {}, {}, {}".format(self.id, self.title, self.topics )
 #%% load topics
 # Input  filename
 def load_topics(filename='PiCkeR/static/input/' + topics_filename):
@@ -60,6 +60,7 @@ def load_topics(filename='PiCkeR/static/input/' + topics_filename):
     with open(filename, 'r') as f:
         for line in f.readlines():
             topics[line.strip()] = []
+    print(len(topics.keys()))
     return topics
 
 #%% fill topics with pc members
@@ -77,7 +78,7 @@ def fill_topics(topics, filename='PiCkeR/static/input/' + pc_info_filename):
 
     pcinfo = pcinfo.filter(topics_list)
     pcinfo['index'] = pcinfo.index
-    
+
 
     for topic in topics:
         if topic == noTopic: continue
@@ -91,8 +92,10 @@ def dump_topics(topics, output):
         json.dump(topics, outfile, indent=4)
 #%%  fill PC members
 def load_pcs(topics, filename='PiCkeR/static/input/' + pc_info_filename):
+    print(pc_info_filename)
     topics_list = ["{}".format(x) for x in topics if x != noTopic]
     pcinfo = pd.read_csv(filename, header=[0], delimiter=',')
+    print(pcinfo.columns)
     # Make sure the column list matches the pcinfo.csv file. Modify the following lists if needed.
     if 'disabled' in pcinfo.columns:
         pcinfo.columns = ['first','last','email','affiliation','country', 'disabled', 'roles','tags','collaborators','follow'] + topics_list
@@ -105,8 +108,8 @@ def load_pcs(topics, filename='PiCkeR/static/input/' + pc_info_filename):
             if topic == noTopic: continue
             new_topics[topic] = row[topic]
         # Modify to match the defined tags
-        if row['tags'] != 'tpc' and row['tags'] != 'erc' and row['tags'] != 'BUSH' and math.isnan(float(row['tags'])):
-            row['tags'] = ''
+        #if row['tags'] != 'tpc' and row['tags'] != 'erc' and row['tags'] != 'BUSH' and math.isnan(float(row['tags'])):
+        #    row['tags'] = ''
         pcs += [PCMember(index, row['first'] + ' ' +row['last'], row['email'], row['tags'], new_topics)]
     return pcs
 #%%  fill Papers
@@ -120,6 +123,7 @@ def load_papers(filename='PiCkeR/static/input/' + data_filename):
         abstract = paper['abstract']
         authors = paper['authors']
         topics = []
+        #print(paper['topics'])
         if 'best_matching_topic' in paper:
             topics += [paper['best_matching_topic'].strip()]
         else:
@@ -132,6 +136,8 @@ def load_papers(filename='PiCkeR/static/input/' + data_filename):
             topics += [paper['third_best_matching_topic'].strip()]
         else:
             topics += [noTopic]
+
+        topics = paper['topics']
         papers[str(pid)] = Paper(str(pid), title, abstract, topics, authors).__dict__
     return papers
 # %%
